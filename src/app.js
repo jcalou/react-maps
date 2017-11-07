@@ -1,33 +1,46 @@
-import React, { Component } from 'react'
-import ReactDOM from 'react-dom'
-import Map from './components/Map.js'
-import Places from './components/Places.js'
-import superagent from 'superagent'
+import React, { Component } from 'react';
+import './App.css';
+import Map from './components/Map.js';
+import firebase from 'firebase/app';
+import 'firebase/database';
+
+const config = {
+  apiKey: "AIzaSyDmMO2AxP6wHhq2nIDg9pZzfe5TEV60oVQ",
+  authDomain: "react-maps-dbc72.firebaseapp.com",
+  databaseURL: "https://react-maps-dbc72.firebaseio.com",
+  projectId: "react-maps-dbc72",
+  storageBucket: "",
+  messagingSenderId: "890133682496"
+};
 
 class App extends Component {
 
   constructor() {
-    super()
+    super();
+
+    this.app = firebase.initializeApp(config);
+    this.database = this.app.database().ref().child('venues');
+
     this.state ={
       venues: []
-    }
+    };
+
   }
 
   componentDidMount() {
-    console.log('ComponentDidMount');
-    const url = 'https://api.foursquare.com/v2/venues/search?v=20140806&ll=40.7575285,-73.9884469&client_id=VZZ1EUDOT0JYITGFDKVVMCLYHB3NURAYK3OHB5SK5N453NFD&client_secret=UAA15MIFIWVKZQRH22KPSYVWREIF2EMMH0GQ0ZKIQZC322NZ'
+    const previousVenues = this.state.venues;
 
-    superagent
-    .get(url)
-    .query(null)
-    .set('Accept', 'text/json')
-    .end((error, response) => {
+    this.database.on('child_added', snap => {
 
-      const venues = response.body.response.venues
-      //console.log(JSON.stringify(venues))
+      previousVenues.push({
+        id: snap.key,
+        lat: snap.val().lat,
+        lng: snap.val().lng,
+        name: snap.val().name
+      })
 
       this.setState({
-        venues: venues
+        venues: previousVenues
       })
 
     })
@@ -36,31 +49,16 @@ class App extends Component {
 
   render() {
     const location = {
-      lat: 40.7575285,
-      lng: -73.9884469
-    }
-
-    const markers = [
-      {
-        location: {
-          lat: 40.7575285,
-          lng: -73.9884469
-        }
-      }
-    ]
+      lat: -34.014623,
+      lng: -60.434949
+    };
 
     return (
-      <div>
-        <div style={{width: '30%', height: 600}}>
-          <Map center={location} markers={this.state.venues} />
-        </div>
-
-        <div style={{width: '70%', height: 600}}>
-          <Places venues={this.state.venues}/>
-        </div>
+      <div style={{width: '100%', height: '100vh'}}>
+        <Map center={location} markers={this.state.venues} />
       </div>
     )
   }
 }
 
-ReactDOM.render(<App />, document.getElementById('app'))
+export default App;

@@ -1,2 +1,2 @@
 # react-maps
-React Maps app
+This is a React App built to test and use google maps api

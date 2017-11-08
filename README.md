@@ -1,2 +1,6 @@
-# react-maps
-This is a React App built to test and use google maps api
+#react-maps
+##by Juan Calou
+
+This is a React app to test google maps API.
+
+```npm start``` to start the dev server

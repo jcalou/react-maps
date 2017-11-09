@@ -2,17 +2,9 @@ import React, { Component } from "react";
 import './style.css';
 import ReactDOM from "react-dom";
 import Map from './components/Map.js'
-import firebase from 'firebase/app';
+import firebase from 'firebase';
 import 'firebase/database';
-
-const config = {
-  apiKey: "AIzaSyDmMO2AxP6wHhq2nIDg9pZzfe5TEV60oVQ",
-  authDomain: "react-maps-dbc72.firebaseapp.com",
-  databaseURL: "https://react-maps-dbc72.firebaseio.com",
-  projectId: "react-maps-dbc72",
-  storageBucket: "",
-  messagingSenderId: "890133682496"
-};
+import { config } from './config/config.js';
 
 export default class App extends Component {
 
@@ -27,11 +19,53 @@ export default class App extends Component {
       markers: [],
       polygons: [],
       location: {
-        lat: -34.014623,
-        lng: -60.434949
-      }
+        lat: -34.024704,
+        lng: -60.440991
+      },
+      user: null
     };
 
+    this.handleAuth = this.handleAuth.bind(this);
+    this.handleLogout = this.handleLogout.bind(this);
+    this.renderLoginButton = this.renderLoginButton.bind(this);
+  }
+
+  componentWillMount() {
+
+    firebase.auth().onAuthStateChanged(user => {
+      this.setState({
+        user: user
+      })
+    });
+
+  }
+
+  handleAuth() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+
+    firebase.auth().signInWithPopup(provider)
+      .then(result => console.log(result))
+      .catch(error => console.log(error))
+
+  }
+
+  handleLogout() {
+    firebase.auth().signOut()
+      .then(result => console.log('Cerro sesion'))
+      .catch(error => console.log(error))
+  }
+
+  renderLoginButton() {
+    if(this.state.user) {
+      return (
+        <div style={{width: '100%', height: '100vh'}}>
+          <button onClick={this.handleLogout}>Logout</button>
+          <Map center={this.state.location} markers={this.state.markers} polygons={this.state.polygons}/>
+        </div>
+      );
+    }else {
+      return (<button onClick={this.handleAuth}>Login con google</button>);
+    }
   }
 
   componentDidMount() {
@@ -59,7 +93,8 @@ export default class App extends Component {
       previousPolygons.push({
         id: snap.key,
         points: snap.val().points,
-        name: snap.val().name
+        name: snap.val().name,
+        color: snap.val().color
       })
 
       this.setState({
@@ -73,8 +108,8 @@ export default class App extends Component {
   render() {
 
     return(
-      <div style={{width: '100%', height: '100vh'}}>
-        <Map center={this.state.location} markers={this.state.markers} polygons={this.state.polygons}/>
+      <div>
+        { this.renderLoginButton() }
       </div>
     )
   }
